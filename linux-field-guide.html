@@ -1,0 +1,1227 @@
+<title>Linux Field Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a field manual — man-page masthead, sticky filter bar, topic index on the left, command rows stacked in one reading column */
+:root{
+  --bg:#F4F6F8; --surface:#FFFFFF; --ink:#17202B; --muted:#586474; --line:#D9DFE6;
+  --accent:#1D5FA8; --accent-soft:#E2ECF8;
+  --code:#EBEFF4; --code-ink:#162030;
+  --safe:#237A4B; --safe-bg:#E1F1E7; --warn:#8F5300; --warn-bg:#FAEDD5; --danger:#B42318; --danger-bg:#FBE3E0; --neutral-bg:#E6EAF0;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --barh:64px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E131A; --surface:#151C25; --ink:#E4E9F0; --muted:#95A1B0; --line:#263140;
+    --accent:#79A8F0; --accent-soft:#1B2A40;
+    --code:#1A222D; --code-ink:#DCE3EC;
+    --safe:#5CC48A; --safe-bg:#14301F; --warn:#E7A848; --warn-bg:#33270F; --danger:#F07B70; --danger-bg:#3A1A17; --neutral-bg:#222B37;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E131A; --surface:#151C25; --ink:#E4E9F0; --muted:#95A1B0; --line:#263140;
+  --accent:#79A8F0; --accent-soft:#1B2A40;
+  --code:#1A222D; --code-ink:#DCE3EC;
+  --safe:#5CC48A; --safe-bg:#14301F; --warn:#E7A848; --warn-bg:#33270F; --danger:#F07B70; --danger-bg:#3A1A17; --neutral-bg:#222B37;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 var(--f-body);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* masthead */
+.masthead{background:var(--surface);border-bottom:1px solid var(--line)}
+.masthead .wrap{padding-block:20px 28px;display:grid;gap:14px}
+.manline{display:flex;justify-content:space-between;gap:12px;font:500 12px/1.4 var(--f-mono);color:var(--muted);letter-spacing:.04em;flex-wrap:wrap}
+h1{font:700 clamp(36px,6vw,56px)/1.02 var(--f-display);margin:6px 0 0;letter-spacing:-.01em;text-wrap:balance}
+.lede{max-width:66ch;margin:0;color:var(--muted);font-size:16px}
+.stats{font:500 13px/1.4 var(--f-mono);color:var(--ink);display:flex;gap:6px 18px;flex-wrap:wrap}
+.stats b{color:var(--accent);font-weight:500}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:13px;color:var(--muted)}
+.legend > span{display:inline-flex;gap:8px;align-items:center}
+.prompt-demo{font-family:var(--f-mono);color:var(--accent);font-weight:500}
+
+/* filter bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.bar .wrap{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding-block:10px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{font:500 13px/1 var(--f-body);background:transparent;color:var(--ink);border:0;padding:9px 13px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+.search{flex:1 1 220px;min-width:0;position:relative}
+.search input{width:100%;font:14px/1 var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px}
+.search input::placeholder{color:var(--muted)}
+.toggle{font:500 13px/1 var(--f-body);background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer;display:inline-flex;gap:8px;align-items:center}
+.toggle .dot{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.toggle[aria-pressed="true"]{border-color:var(--safe);color:var(--safe);background:var(--safe-bg)}
+.toggle[aria-pressed="true"] .dot{background:var(--safe)}
+.progress{display:flex;align-items:center;gap:10px;font:500 12px/1 var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.meter{width:90px;height:6px;border-radius:3px;background:var(--neutral-bg);overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.jump{display:none;font:14px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;max-width:100%}
+
+/* main layout */
+.layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:40px;padding-block:28px 40px}
+.toc{position:sticky;top:calc(var(--barh) + env(safe-area-inset-top,0px) + 16px);align-self:start;max-height:calc(100vh - var(--barh) - 40px);overflow:auto;font-size:13.5px;padding-right:6px}
+.toc h4{font:600 12px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px;display:flex;justify-content:space-between}
+.toc h4:first-child{margin-top:0}
+.toc ul{list-style:none;margin:0;padding:0;display:grid;gap:1px}
+.toc a{display:flex;gap:8px;align-items:center;text-decoration:none;color:var(--ink);padding:4px 8px;border-radius:5px}
+.toc a:hover{background:var(--accent-soft)}
+.toc a .ck{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--line);flex:none}
+.toc li.done a .ck{background:var(--safe);border-color:var(--safe)}
+.content{min-width:0;max-width:860px}
+
+/* levels */
+.level{margin-bottom:24px}
+.level-head{display:grid;gap:6px;padding:22px 0 14px;border-bottom:2px solid var(--ink)}
+.level-title{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.level h2{font:700 34px/1 var(--f-display);margin:0}
+.level .sub{font:600 18px/1 var(--f-display);color:var(--muted)}
+.pips{display:inline-flex;gap:4px;align-self:center}
+.pips i{width:10px;height:10px;border-radius:50%;border:2px solid var(--accent)}
+.pips i.on{background:var(--accent)}
+.level-desc{margin:0;color:var(--muted);max-width:66ch}
+.level-prog{font:500 12px/1 var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* topics */
+.topic{padding:28px 0 26px;border-bottom:1px solid var(--line);scroll-margin-top:calc(var(--barh) + env(safe-area-inset-top,0px) + 12px)}
+.topic-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.topic h3{font:700 23px/1.15 var(--f-display);margin:0;text-wrap:balance}
+.man{font:13px/1.4 var(--f-mono);color:var(--muted);margin:4px 0 0}
+.done-box{display:inline-flex;gap:8px;align-items:center;font:500 13px/1 var(--f-body);color:var(--muted);cursor:pointer;white-space:nowrap;border:1px solid var(--line);border-radius:999px;padding:7px 12px 7px 10px;user-select:none}
+.done-box input{accent-color:var(--safe);width:15px;height:15px;margin:0}
+.done-box:has(input:checked){color:var(--safe);border-color:var(--safe);background:var(--safe-bg)}
+.intro{margin:12px 0 16px;max-width:68ch}
+.rows{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.row{display:grid;gap:5px;min-width:0}
+.cmd{display:flex;align-items:flex-start;gap:10px;background:var(--code);border-radius:6px;padding:7px 7px 7px 12px;min-width:0}
+.cmd code{flex:1;min-width:0;font:13.5px/1.6 var(--f-mono);color:var(--code-ink);white-space:pre-wrap;overflow-wrap:anywhere}
+.cmd .p{color:var(--accent);font:500 13.5px/1.6 var(--f-mono);user-select:none}
+.cmd.key{background:transparent;border:1px dashed var(--line)}
+.cmd.key code{font-weight:500}
+.copy{font:500 11.5px/1 var(--f-body);color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:6px 8px;cursor:pointer;flex:none}
+.copy:hover{color:var(--accent);border-color:var(--accent)}
+.meta{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-left:12px}
+.meta p{margin:0;min-width:0}
+.tag{flex:none;display:inline-flex;align-items:center;gap:6px;font:500 11px/1 var(--f-body);letter-spacing:.03em;text-transform:uppercase;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.tag::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.tag.safe{color:var(--safe);background:var(--safe-bg)}
+.tag.warn{color:var(--warn);background:var(--warn-bg)}
+.tag.danger{color:var(--danger);background:var(--danger-bg)}
+.tag.neutral{color:var(--muted);background:var(--neutral-bg)}
+.out{margin-left:12px;border-left:2px solid var(--line);padding:2px 0 2px 12px;min-width:0;display:grid;gap:4px}
+.out-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.out-label{font:600 10.5px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.out pre{margin:0;font:12.5px/1.55 var(--f-mono);color:var(--muted);overflow-x:auto;white-space:pre}
+.note,.task{margin:16px 0 0;padding:10px 14px;border-radius:6px;max-width:72ch;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline}
+.note{background:var(--warn-bg)}
+.note strong{color:var(--warn)}
+.task{background:var(--accent-soft)}
+.task strong{color:var(--accent)}
+.note strong,.task strong{font:600 11px/1.6 var(--f-mono);letter-spacing:.08em;text-transform:uppercase}
+.empty{padding:40px 0;color:var(--muted)}
+footer{border-top:1px solid var(--line);background:var(--surface)}
+footer .wrap{padding-block:14px}
+
+@media (max-width:980px){
+  .layout{grid-template-columns:minmax(0,1fr);gap:0}
+  .toc{display:none}
+  .jump{display:block;flex:1 1 100%}
+}
+@media (max-width:560px){
+  .topic-head{flex-direction:column;gap:10px}
+  .meta{flex-direction:column;gap:6px}
+  .seg button{padding:9px 10px}
+}
+@media (prefers-reduced-motion:reduce){ .meter i{transition:none} }
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="manline"><span>LINUX-FIELD-GUIDE(7)</span><span>Miscellaneous Information Manual</span><span>LINUX-FIELD-GUIDE(7)</span></div>
+    <h1>Linux Field Guide</h1>
+    <p class="lede">Everyday Linux skills, from your first commands to troubleshooting production servers, sorted into Easy, Medium and Hard. Every command comes with a working example and a label that says whether it is safe to run.</p>
+    <div class="stats"><span><b id="stat-topics">–</b> topics</span><span><b id="stat-cmds">–</b> commands</span><span>Ubuntu / Debian first · RHEL, Rocky, Fedora and Amazon Linux equivalents noted</span></div>
+    <div class="legend">
+      <span><span class="tag safe">Read-only</span> only looks; safe on any server</span>
+      <span><span class="tag warn">Changes system</span> modifies files, services or settings</span>
+      <span><span class="tag danger">Destructive</span> can delete data or cut access</span>
+      <span><span class="prompt-demo">$</span> type what follows; <span class="prompt-demo">sudo</span> runs it as root</span>
+    </div>
+  </div>
+</header>
+
+<div class="bar" id="bar">
+  <div class="wrap">
+    <div class="seg" role="group" aria-label="Level">
+      <button type="button" data-level="all" aria-pressed="true">All</button>
+      <button type="button" data-level="easy" aria-pressed="false">Easy</button>
+      <button type="button" data-level="medium" aria-pressed="false">Medium</button>
+      <button type="button" data-level="hard" aria-pressed="false">Hard</button>
+    </div>
+    <label class="search"><span hidden>Search</span><input id="q" type="search" placeholder="Search commands, e.g. port, disk full, cron" autocomplete="off"></label>
+    <button type="button" class="toggle" id="ro" aria-pressed="false"><span class="dot"></span>Read-only commands only</button>
+    <div class="progress"><span id="prog-text">0 / 0 practiced</span><span class="meter"><i id="prog-bar"></i></span></div>
+    <select class="jump" id="jump" aria-label="Jump to topic"><option value="">Jump to a topic…</option></select>
+  </div>
+</div>
+
+<div class="wrap layout">
+  <nav class="toc" id="toc" aria-label="Topics"></nav>
+  <main class="content" id="content"></main>
+</div>
+
+<footer><div class="wrap manline"><span>Practice on a test machine first, never on a server you do not own.</span><span>LINUX-FIELD-GUIDE(7)</span></div></footer>
+
+<script type="text/plain" id="guide-data">
+@level easy ¦ Easy ¦ Foundations ¦ Move around, read and manage files, understand permissions, install software and handle processes. Safe to practice on any machine.
+
+## shell ¦ The shell and getting help ¦ bash(1), man(1)
+> The terminal runs a shell, usually Bash, that reads your commands. Every command has built-in documentation, and learning to read it is the most useful skill on this page.
+- man ls ¦ Open the full manual for a command. Space pages down, / searches, q quits. ¦ r
+- ls --help ¦ Print a short summary of options. Faster than man for a quick reminder. ¦ r
+- man 5 crontab ¦ Open section 5 (file formats) instead of section 1 (commands). crontab(1) is the command; crontab(5) is the file format. ¦ r
+- apropos "disk usage" ¦ Search every manual page description for a phrase. ¦ r
+- type cd ¦ Show whether a name is a builtin, alias, function or program. ¦ r
+= cd is a shell builtin
+- command -v python3 ¦ Print the path of the program that would run, or nothing if it is not installed. ¦ r
+= /usr/bin/python3
+- history | tail -20 ¦ Your last 20 commands. Run one again with !NUMBER. ¦ r
+- Tab ¦ Complete a command, file name or path. Press twice to list the choices. ¦ k
+- Ctrl+R ¦ Search backward through history as you type. Enter runs the match. ¦ k
+- Ctrl+C ¦ Stop the running command. ¦ k
+- Ctrl+L ¦ Clear the screen (same as clear). ¦ k
+- Ctrl+A / Ctrl+E ¦ Jump to the start or end of the line. ¦ k
+! Read the prompt: a "$" means you are a normal user, a "#" means you are root. As root, every command has full control of the system.
+? Use man and --help to find the option that makes ls sort by file size, then run it.
+
+## nav ¦ Navigation and paths ¦ ls(1), cd
+> Every file lives in one tree that starts at "/". An absolute path starts with "/"; a relative path starts from where you are now.
+- pwd ¦ Print the current directory. ¦ r
+= /home/ubuntu
+- ls ¦ List files in the current directory. ¦ r
+- ls -la ¦ Long listing, including hidden files (names that start with "."). ¦ r
+= drwxr-x--- 5 ubuntu ubuntu 4096 Mar  3 10:12 .
+= -rw-r--r-- 1 ubuntu ubuntu  220 Jan  6  2022 .bash_logout
+= -rw-rw-r-- 1 ubuntu ubuntu  512 Mar  3 09:58 notes.txt
+- ls -lhS /var/log ¦ Human-readable sizes, largest first. ¦ r
+- ls -lt | head ¦ Most recently modified first. ¦ r
+- cd /etc/nginx ¦ Go to an absolute path. ¦ r
+- cd ../logs ¦ Go up one level, then into logs (a relative path). ¦ r
+- cd ~ ¦ Go to your home directory. cd on its own does the same. ¦ r
+- cd - ¦ Jump back to the previous directory. ¦ r
+- tree -L 2 /opt ¦ Show a directory tree two levels deep (install with sudo apt install tree). ¦ r
+? From your home directory, reach /var/log with an absolute path, then return home with a relative path.
+
+## fhs ¦ Where things live ¦ hier(7)
+> Linux follows the Filesystem Hierarchy Standard. Knowing it tells you where to look before you start searching.
+- ls /etc ¦ System-wide configuration: web servers, SSH, cron, users. ¦ r
+- ls /var/log ¦ Log files: syslog, auth.log, web server logs. ¦ r
+- ls /home ¦ Home directories of normal users. root's home is /root. ¦ r
+- ls /usr/bin ¦ Installed programs. /usr/local/bin holds programs you install by hand. ¦ r
+- ls /opt /srv ¦ Third-party software (/opt) and data this system serves (/srv). ¦ r
+- ls /tmp ¦ Temporary files, often cleared at reboot. Never keep important data here. ¦ r
+- ls /proc/$$ ¦ Live kernel and process information exposed as files. $$ is your shell's process ID. ¦ r
+- ls /dev ¦ Device files: disks such as /dev/sda or /dev/nvme0n1, and /dev/null. ¦ r
+- ls /boot ¦ Kernel and bootloader files. ¦ r
+- ls /mnt /media ¦ Mount points for extra disks and removable media. ¦ r
+? Write one sentence for each directory above saying what you would look for there.
+
+## files ¦ Create, copy, move and delete ¦ cp(1), mv(1), rm(1)
+> These commands change files. Linux has no recycle bin: rm deletes immediately.
+- mkdir projects ¦ Create a directory. ¦ c
+- mkdir -p app/static/css ¦ Create nested directories, with no error if they already exist. ¦ c
+- touch notes.txt ¦ Create an empty file, or update the timestamp of an existing one. ¦ c
+- cp notes.txt notes.bak ¦ Copy a file. ¦ c
+- cp -a app/ app-backup/ ¦ Copy a directory recursively, keeping permissions and timestamps. ¦ c
+- mv notes.txt docs/ ¦ Move a file into another directory. ¦ c
+- mv old.txt new.txt ¦ Rename a file (a move within the same directory). ¦ c
+- rm -i notes.bak ¦ Delete, asking for confirmation first. ¦ d
+- rm -r app-backup/ ¦ Delete a directory and everything in it. ¦ d
+- rmdir emptydir ¦ Delete a directory only if it is empty. ¦ c
+- ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled/ ¦ Create a symbolic link (a shortcut). ¦ c
+- file report.pdf ¦ Detect a file's real type from its contents. ¦ r
+- stat notes.txt ¦ Size, owner, permissions and timestamps. ¦ r
+! Before rm -r, run ls on the same path. Never run rm -rf on a variable you have not checked, such as rm -rf "$DIR/": if DIR is empty, that becomes rm -rf /.
+? Create a practice folder with three nested directories and a file, copy it, rename the copy, then delete it.
+
+## view ¦ Read files ¦ cat(1), less(1), tail(1)
+> Pick the tool by file size: cat for short files, less for long ones, tail for logs.
+- cat /etc/hostname ¦ Print a short file. ¦ r
+- less /var/log/syslog ¦ Scroll a long file. Space and b page, /word searches, n finds the next match, G jumps to the end, q quits. ¦ r
+- head -n 20 access.log ¦ First 20 lines. ¦ r
+- tail -n 50 error.log ¦ Last 50 lines. ¦ r
+- tail -f /var/log/nginx/access.log ¦ Follow a file as new lines are written. Ctrl+C stops. ¦ r
+- wc -l access.log ¦ Count lines (-w counts words, -c counts bytes). ¦ r
+= 18342 access.log
+- cat -A config.ini | head ¦ Show hidden characters: tabs as ^I, Windows line endings as ^M. ¦ r
+- less +F app.log ¦ Follow like tail -f. Ctrl+C stops following so you can scroll back. ¦ r
+? Open the system log in less, search for "error", and jump to the end.
+
+## find ¦ Find files ¦ find(1), locate(1)
+> find walks a directory tree and filters by name, type, size, age or owner.
+- find . -name "*.log" ¦ Files ending in .log under the current directory. ¦ r
+- find /etc -iname "*ssh*" ¦ Case-insensitive name match. ¦ r
+- find /var -type f -size +100M ¦ Files larger than 100 MB. ¦ r
+- find ~/app -type f -mtime -1 ¦ Files changed in the last 24 hours. ¦ r
+- find /home -type d -name ".git" ¦ Find Git repositories. ¦ r
+- find /tmp -type f -mtime +7 -print ¦ List files older than 7 days. Check this list before deleting. ¦ r
+- find /tmp -type f -mtime +7 -delete ¦ Delete files older than 7 days. ¦ d
+- find . -name "*.py" -exec grep -l "TODO" {} + ¦ Run another command on every match. ¦ r
+- locate nginx.conf ¦ Search a prebuilt index, very fast (sudo apt install plocate; sudo updatedb refreshes it). ¦ r
+! Run find with -print first. Add -delete only after you have read the list.
+? Find every file in /var/log larger than 1 MB that changed in the last 7 days.
+
+## grep ¦ Search inside files ¦ grep(1)
+> grep prints the lines that match a pattern. Combine it with pipes to filter the output of any command.
+- grep "error" app.log ¦ Lines that contain "error". ¦ r
+- grep -i "error" app.log ¦ Ignore upper and lower case. ¦ r
+- grep -n "listen" /etc/nginx/nginx.conf ¦ Show line numbers. ¦ r
+- grep -rn "DATABASE_URL" ~/app ¦ Search every file under a directory. ¦ r
+- grep -v "^#" /etc/ssh/sshd_config | grep -v "^$" ¦ Hide comments and blank lines to see only active settings. ¦ r
+- grep -c "404" access.log ¦ Count matching lines. ¦ r
+- grep -E "error|warn|fail" app.log ¦ Match any of several words (extended regular expressions). ¦ r
+- grep -w "root" /etc/passwd ¦ Match whole words only. ¦ r
+- grep -A 3 -B 2 "Traceback" app.log ¦ Also show 3 lines after and 2 lines before each match. ¦ r
+- ps aux | grep [n]ginx ¦ Filter another command's output. The [n] trick keeps grep itself out of the results. ¦ r
+? Show the active (non-comment) lines of /etc/ssh/sshd_config with their line numbers.
+
+## quote ¦ Wildcards and quoting ¦ bash(1), glob(7)
+> The shell expands wildcards and variables before the command runs. Quotes control that expansion.
+- ls *.txt ¦ * matches any characters. ¦ r
+- ls file?.txt ¦ ? matches exactly one character. ¦ r
+- ls report-[0-9].csv ¦ [ ] matches one character from a set or range. ¦ r
+- mkdir -p logs/{2024,2025,2026} ¦ Braces expand into several names at once. ¦ c
+- echo "Home is $HOME" ¦ Double quotes expand variables. ¦ r
+= Home is /home/ubuntu
+- echo 'Home is $HOME' ¦ Single quotes keep the text exactly as typed. ¦ r
+= Home is $HOME
+- ls "My Documents" ¦ Quote names that contain spaces (or escape them: My\ Documents). ¦ r
+- echo "Today is $(date +%F)" ¦ $( ) runs a command and inserts its output. ¦ r
+= Today is 2026-10-22
+! Quote variables: rm "$FILE", not rm $FILE. An unquoted name with spaces splits into several arguments.
+? Create a1.txt, a2.txt and b1.txt, then list only the "a" files with a single wildcard.
+
+## io ¦ Redirection, pipes and chaining ¦ bash(1)
+> Every command has three streams: input (0), output (1) and errors (2). You can send each one to a file or to another command.
+- echo "hello" > out.txt ¦ Write output to a file, replacing what was there. ¦ c
+- echo "again" >> out.txt ¦ Append to the end of a file. ¦ c
+- ls /nope 2> errors.txt ¦ Send only the errors to a file. ¦ c
+- ./backup.sh > backup.log 2>&1 ¦ Send output and errors to the same file. ¦ c
+- some-command > /dev/null 2>&1 ¦ Throw away all output. ¦ r
+- sort < names.txt ¦ Read input from a file. ¦ r
+- cut -d' ' -f1 access.log | sort | uniq -c | sort -rn | head ¦ A pipeline: the 10 IP addresses with the most requests in a web log. ¦ r
+- df -h | tee disk.txt ¦ Show output and save it at the same time. ¦ c
+- mkdir build && cd build ¦ Run the second command only if the first succeeds. ¦ c
+- ping -c1 example.com || echo "unreachable" ¦ Run the second command only if the first fails. ¦ r
+- echo $? ¦ Exit status of the last command: 0 means success, anything else means failure. ¦ r
+? Count the lines in /etc/passwd that contain "nologin", using one pipe.
+
+## editors ¦ Edit files with nano and vim ¦ nano(1), vim(1)
+> Servers rarely have a graphical editor. nano is easy to learn; vim is installed almost everywhere, so learn its basics too.
+- nano /etc/hosts ¦ Open a file in nano (put sudo in front for system files). ¦ c
+- Ctrl+O, Enter ¦ nano: save. ¦ k
+- Ctrl+X ¦ nano: exit (asks to save if anything changed). ¦ k
+- Ctrl+W ¦ nano: search. ¦ k
+- vim app.conf ¦ Open a file in vim. It starts in normal mode, where keys are commands. ¦ c
+- i ¦ vim: start typing text. Esc returns to normal mode. ¦ k
+- :wq ¦ vim: write (save) and quit. ¦ k
+- :q! ¦ vim: quit without saving. ¦ k
+- /listen ¦ vim: search forward; n jumps to the next match. ¦ k
+- dd / u ¦ vim: delete the current line / undo. ¦ k
+- sudoedit /etc/ssh/sshd_config ¦ Edit a root-owned file with your own editor settings, without running the editor as root. ¦ c
+? Open a practice file in vim, add a line, save, then reopen it and quit without saving.
+
+## users ¦ Users and sudo ¦ id(1), sudo(8)
+> Every process runs as a user. root can do anything; normal users borrow root's power one command at a time with sudo.
+- whoami ¦ Your username. ¦ r
+- id ¦ Your user ID, group ID and every group you belong to. ¦ r
+= uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu),27(sudo),999(docker)
+- groups ¦ Just your groups. ¦ r
+- sudo apt update ¦ Run one command as root. Each use is logged in /var/log/auth.log. ¦ c
+- sudo -l ¦ What you are allowed to run with sudo. ¦ r
+- sudo -i ¦ Open a root shell. Type exit as soon as you are done. ¦ c
+- su - deploy ¦ Switch to another user, with their environment. ¦ c
+- passwd ¦ Change your own password. ¦ c
+- who ¦ Who is logged in right now. ¦ r
+- w ¦ Who is logged in and what they are running. ¦ r
+- last -n 10 ¦ Recent logins and reboots. ¦ r
+? Run id and explain what each of your groups lets you do.
+
+## perms ¦ Permissions and ownership ¦ chmod(1), chown(1)
+> Each file has an owner, a group and permissions for the owner (u), the group (g) and everyone else (o). Read r=4, write w=2, execute x=1.
+- ls -l deploy.sh ¦ Read the permissions in the first column. ¦ r
+= -rwxr-x--- 1 deploy www-data 812 Mar 3 10:12 deploy.sh
+= │└┬┘└┬┘└┬┘
+= │ │  │  └ others: no access
+= │ │  └ group www-data: read, execute
+= │ └ owner deploy: read, write, execute
+= └ type: - file, d directory, l link
+- chmod +x deploy.sh ¦ Make a script executable. ¦ c
+- chmod u=rw,g=r,o= secrets.env ¦ Set permissions with letters. ¦ c
+- chmod 644 index.html ¦ rw-r--r--: typical for normal files. ¦ c
+- chmod 755 /var/www/app ¦ rwxr-xr-x: typical for directories and programs. ¦ c
+- chmod 600 ~/.ssh/id_ed25519 ¦ rw-------: required for private keys and secret files. ¦ c
+- sudo chown deploy:www-data app.py ¦ Change owner and group. ¦ c
+- sudo chown -R deploy: /srv/app ¦ Change owner recursively. The trailing ":" also sets the user's own group. ¦ c
+- sudo chgrp www-data uploads ¦ Change only the group. ¦ c
+- umask ¦ The default permission mask. 0022 makes new files 644 and new directories 755. ¦ r
+! Never fix a permission problem with chmod 777. It lets every user on the system change the file.
+? Create a file, set it to 640, and explain exactly who can read it.
+
+## sysinfo ¦ System information ¦ uname(1), hostnamectl(1)
+> The first commands to run on any unfamiliar machine.
+- cat /etc/os-release ¦ Distribution name and version. ¦ r
+- uname -r ¦ Kernel version (uname -a prints everything). ¦ r
+- hostnamectl ¦ Hostname, OS, kernel and virtualization type. ¦ r
+- uptime ¦ How long the machine has been running, and its load average. ¦ r
+= 10:41:02 up 38 days,  2:14,  1 user,  load average: 0.08, 0.12, 0.10
+- timedatectl ¦ Date, time zone and whether the clock is synced. ¦ r
+- lscpu ¦ CPU model and core count (nproc prints just the count). ¦ r
+- free -h ¦ Memory and swap in readable units. Read the "available" column. ¦ r
+- df -h ¦ Free disk space per filesystem. ¦ r
+- du -sh ~/* ¦ Size of each item in your home directory. ¦ r
+- lsblk ¦ Disks and partitions as a tree. ¦ r
+? Collect the OS version, kernel, CPU count, memory and free disk space of a machine into one text file.
+
+## pkg ¦ Install software ¦ apt(8), dnf(8), dpkg(1)
+> Each distribution family has its own package manager. Ubuntu and Debian use apt; RHEL, Rocky, Fedora and Amazon Linux use dnf (older versions: yum).
+- sudo apt update ¦ Refresh the list of available packages. Run this before installing. ¦ c
+- apt list --upgradable ¦ Installed packages that have updates. ¦ r
+- sudo apt upgrade ¦ Install the available updates. ¦ c
+- sudo apt install nginx ¦ Install a package and everything it depends on. ¦ c
+- apt search redis ¦ Search package names and descriptions. ¦ r
+- apt show nginx ¦ Version, size and description of a package. ¦ r
+- dpkg -l | grep nginx ¦ Is a package installed, and which version? ¦ r
+- dpkg -L nginx ¦ Files a package installed. ¦ r
+- sudo apt remove nginx ¦ Uninstall, keeping configuration files. ¦ c
+- sudo apt purge nginx ¦ Uninstall and delete configuration files. ¦ d
+- sudo apt autoremove ¦ Remove dependencies that nothing needs any more. ¦ c
+- sudo dnf install nginx ¦ RHEL family: install. dnf search, dnf remove and dnf upgrade work the same way. ¦ c
+- rpm -qa | grep nginx ¦ RHEL family: is a package installed? ¦ r
+- snap list ¦ Packages installed through Snap (Ubuntu). ¦ r
+! On a production server, read the output of apt list --upgradable before running apt upgrade. Upgrades can restart services.
+? Install the tree package, see where its files went with dpkg -L, then remove it.
+
+## archive ¦ Archives and compression ¦ tar(1), gzip(1), zip(1)
+> tar bundles many files into one; gzip, xz or zip compress them. tar flags: c create, x extract, t list, z gzip, f file name follows.
+- tar -czf site-2026-10-22.tar.gz /var/www/site ¦ Create a compressed archive. ¦ c
+- tar -tzf site-2026-10-22.tar.gz | head ¦ List the contents without extracting. ¦ r
+- tar -xzf site.tar.gz ¦ Extract into the current directory. ¦ c
+- tar -xzf site.tar.gz -C /tmp/restore ¦ Extract into a chosen directory. ¦ c
+- tar -cJf logs.tar.xz logs/ ¦ Smaller archive with xz compression (slower). ¦ c
+- zip -r project.zip project/ ¦ Create a zip, handy for sharing with Windows users. ¦ c
+- unzip -l project.zip ¦ List what is in a zip. ¦ r
+- unzip project.zip -d project/ ¦ Extract a zip into a directory. ¦ c
+- gzip big.log ¦ Compress one file in place (it becomes big.log.gz). gunzip reverses it. ¦ c
+- zcat big.log.gz | grep error ¦ Read a compressed log without extracting it (zgrep and zless also work). ¦ r
+? Archive a folder, list the archive, extract it into /tmp and compare the two with diff -r.
+
+## web ¦ Download files and test URLs ¦ curl(1), wget(1)
+> curl talks to web servers and APIs; wget is simplest for downloading files.
+- curl https://example.com ¦ Print a page's HTML. ¦ r
+- curl -I https://example.com ¦ Headers only: status code, server and redirects. ¦ r
+= HTTP/2 200
+= content-type: text/html; charset=UTF-8
+= server: nginx
+- curl -L -o app.tar.gz https://example.com/app.tar.gz ¦ Download to a file, following redirects. ¦ c
+- curl -sS -o /dev/null -w "%{http_code} %{time_total}s\n" https://example.com ¦ Only the status code and response time. ¦ r
+= 200 0.184s
+- curl -v http://localhost:8000/health ¦ Verbose: DNS, connection, TLS and headers. Very useful for debugging. ¦ r
+- curl -X POST -H "Content-Type: application/json" -d '{"name":"test"}' http://localhost:8000/api/items ¦ Send JSON to an API. ¦ c
+- wget -c https://example.com/file.iso ¦ Download a file; -c resumes an interrupted download. ¦ c
+? Check the status code and response time of three websites with one curl command each.
+
+## proc ¦ Processes and jobs ¦ ps(1), top(1), kill(1)
+> Every running program is a process with an ID (PID). You can list, watch, pause and stop processes.
+- ps aux ¦ Every process with its user, CPU, memory and command. ¦ r
+- ps aux --sort=-%mem | head ¦ Top memory users. ¦ r
+- ps -ef --forest ¦ Processes as a tree of parents and children. ¦ r
+- top ¦ Live view. P sorts by CPU, M by memory, q quits. ¦ r
+- htop ¦ A friendlier live view (sudo apt install htop). ¦ r
+- pgrep -a python ¦ Find processes by name, with their full command. ¦ r
+- kill 1234 ¦ Ask process 1234 to stop cleanly (SIGTERM). ¦ c
+- kill -9 1234 ¦ Force-kill a process that ignores SIGTERM. It gets no chance to clean up. ¦ d
+- pkill -f "manage.py runserver" ¦ Stop every process whose command line matches. ¦ c
+- sleep 300 & ¦ Run a command in the background. ¦ r
+- jobs; fg %1; bg %1 ¦ List background jobs, bring job 1 to the front, or resume it in the background. Ctrl+Z pauses the foreground job. ¦ r
+- nohup ./long-task.sh > task.log 2>&1 & ¦ Keep a job running after you log out. ¦ c
+! On servers, stop services with systemctl, not kill. The service manager may simply restart a process you killed.
+? Start sleep 600 in the background, find its PID with pgrep, and stop it with kill.
+
+@level medium ¦ Medium ¦ Administration ¦ Process text, manage users, run services, read logs, schedule jobs, manage disks, and work with networks, SSH, Git and web servers.
+
+## text ¦ Process text ¦ sort(1), awk(1), sed(1), jq(1)
+> Small tools chained with pipes answer most questions about logs and CSV files.
+- cut -d: -f1,7 /etc/passwd ¦ Fields 1 and 7, split on ":" (username and login shell). ¦ r
+- sort -t, -k3 -n sales.csv ¦ Sort a CSV numerically by its third column. ¦ r
+- sort access.log | uniq -c | sort -rn | head ¦ Count duplicate lines, most frequent first. ¦ r
+- awk '{print $1, $9}' access.log ¦ Print columns 1 and 9 (client IP and status code). ¦ r
+- awk '$9 >= 500 {n++} END {print n}' access.log ¦ Count server errors. ¦ r
+- awk -F, '{sum += $3} END {print sum}' sales.csv ¦ Total of a CSV column. ¦ r
+- sed 's/http:/https:/g' links.txt ¦ Replace text and print the result. The file is not changed. ¦ r
+- sed -i.bak 's/DEBUG=True/DEBUG=False/' settings.env ¦ Edit a file in place, keeping a .bak copy. ¦ c
+- sed -n '10,20p' app.log ¦ Print only lines 10 to 20. ¦ r
+- tr 'a-z' 'A-Z' < names.txt ¦ Translate characters, here to upper case. ¦ r
+- diff -u old.conf new.conf ¦ Show the differences between two files. ¦ r
+- column -t -s, data.csv | less -S ¦ Show a CSV as an aligned table. ¦ r
+- jq '.items[] | {id, status}' response.json ¦ Query JSON (sudo apt install jq). ¦ r
+- find . -name "*.log" -print0 | xargs -0 du -ch | tail -1 ¦ Pass a list of files to another command safely, even with spaces in names. ¦ r
+? From a web access log, list the 5 URLs that return the most 404 errors.
+
+## useradmin ¦ Manage users and groups ¦ useradd(8), usermod(8), visudo(8)
+> Give each person and each application its own account. With a shared account, nobody can tell who did what.
+- sudo adduser alice ¦ Create a user with a home directory and password (Debian/Ubuntu, interactive). ¦ c
+- sudo useradd -m -s /bin/bash bob ¦ Create a user without prompts (works on every distribution). ¦ c
+- sudo useradd --system --no-create-home --shell /usr/sbin/nologin myapp ¦ A service account that cannot log in. ¦ c
+- sudo usermod -aG sudo alice ¦ Add a user to a group (wheel on RHEL). The -a matters: without it, the user is removed from every other group. ¦ c
+- sudo groupadd developers ¦ Create a group. ¦ c
+- sudo gpasswd -d alice developers ¦ Remove a user from a group. ¦ c
+- getent passwd alice ¦ Look up a user (also works with LDAP and other directories). ¦ r
+= alice:x:1001:1001:,,,:/home/alice:/bin/bash
+- getent group sudo ¦ Members of a group. ¦ r
+- sudo chage -l alice ¦ Password age and expiry. ¦ r
+- sudo passwd -l alice ¦ Lock an account's password. ¦ c
+- sudo deluser --remove-home alice ¦ Delete a user and their home directory (RHEL: userdel -r). ¦ d
+- sudo visudo ¦ Edit sudo rules safely; the syntax is checked before saving. ¦ c
+! Never edit /etc/sudoers with a normal editor. One syntax error can lock everyone out of sudo.
+? Create a user, add them to a new group, confirm with id, then delete both.
+
+## advperm ¦ Special permissions and ACLs ¦ chmod(1), setfacl(1), chattr(1)
+> Beyond rwx: SUID, SGID and the sticky bit change how programs and shared folders behave. ACLs grant access to extra users.
+- ls -l /usr/bin/passwd ¦ The "s" is SUID: the program runs as its owner, root. ¦ r
+= -rwsr-xr-x 1 root root 59976 Feb  6 2024 /usr/bin/passwd
+- sudo chmod g+s /srv/shared ¦ SGID on a directory: new files inherit the directory's group. ¦ c
+- sudo chmod +t /srv/dropbox ¦ Sticky bit: users can delete only their own files, as in /tmp. ¦ c
+- sudo find / -xdev -perm -4000 -type f ¦ Every SUID program. Investigate any you do not recognize. ¦ r
+- sudo find / -xdev -type f -perm -0002 ¦ World-writable files. ¦ r
+- getfacl report.pdf ¦ Show access control lists. ¦ r
+- setfacl -m u:alice:rw report.pdf ¦ Give one extra user read and write access. ¦ c
+- setfacl -x u:alice report.pdf ¦ Remove that entry. ¦ c
+- sudo chattr +i /etc/resolv.conf ¦ Make a file immutable, even for root (-i reverses it). ¦ c
+- lsattr /etc/resolv.conf ¦ Show file attributes. ¦ r
+? Create a shared directory where every new file automatically belongs to a "team" group.
+
+## systemd ¦ Services with systemd ¦ systemctl(1), systemd.service(5)
+> systemd starts services at boot, restarts them when they crash, and collects their logs.
+- systemctl status nginx ¦ State, PID, memory and the latest log lines. ¦ r
+- systemctl is-active nginx ¦ Prints active or inactive; handy in scripts. ¦ r
+- systemctl list-units --type=service --state=running ¦ Running services. ¦ r
+- systemctl --failed ¦ Services that have failed. Check this first when something is broken. ¦ r
+- systemctl cat nginx ¦ The unit file and any overrides, with their locations. ¦ r
+- sudo systemctl start nginx ¦ Start now. ¦ c
+- sudo systemctl stop nginx ¦ Stop now. ¦ c
+- sudo systemctl reload nginx ¦ Re-read configuration without dropping connections, if the service supports it. ¦ c
+- sudo systemctl restart nginx ¦ Stop, then start. Causes a brief outage. ¦ c
+- sudo systemctl enable --now nginx ¦ Start at every boot, and start now. ¦ c
+- sudo systemctl disable nginx ¦ Stop starting at boot. ¦ c
+- sudo systemctl edit nginx ¦ Create an override file instead of editing the packaged unit. ¦ c
+- sudo systemctl daemon-reload ¦ Reload unit files after you change them. ¦ c
+- sudo nano /etc/systemd/system/myapp.service ¦ A custom service for a Python web app. ¦ c ¦ File contents
+= [Unit]
+= Description=My web app
+= After=network.target
+=
+= [Service]
+= User=myapp
+= WorkingDirectory=/srv/myapp
+= EnvironmentFile=/etc/myapp.env
+= ExecStart=/srv/myapp/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:8000 myapp.wsgi:application
+= Restart=on-failure
+=
+= [Install]
+= WantedBy=multi-user.target
+? Write a unit file that runs python3 -m http.server 8080, start it, read its status and logs, then disable and remove it.
+
+## logs ¦ Logs ¦ journalctl(1), logrotate(8), dmesg(1)
+> When something breaks, the answer is almost always in a log. systemd's journal holds service logs; /var/log holds log files.
+- journalctl -u nginx -n 50 ¦ Last 50 lines from one service. ¦ r
+- journalctl -u myapp -f ¦ Follow a service's log live. ¦ r
+- journalctl -u myapp --since "1 hour ago" ¦ Filter by time ("2026-10-22 09:00" and "yesterday" also work). ¦ r
+- journalctl -p err -b ¦ Errors and worse since the last boot. ¦ r
+- journalctl -b -1 -e ¦ End of the previous boot's log: why did it reboot? ¦ r
+- journalctl --disk-usage ¦ Space the journal uses. ¦ r
+- sudo tail -f /var/log/syslog ¦ General system log (RHEL: /var/log/messages). ¦ r
+- sudo tail -n 50 /var/log/auth.log ¦ Logins, sudo use and SSH attempts (RHEL: /var/log/secure). ¦ r
+- sudo dmesg -T | tail ¦ Kernel messages with readable times: disks, memory, hardware. ¦ r
+- logger "deploy started" ¦ Write your own message into the system log. ¦ c
+- sudo logrotate -d /etc/logrotate.d/myapp ¦ Dry-run a rotation rule to check it. ¦ r
+- sudo nano /etc/logrotate.d/myapp ¦ Rotate an app's logs daily and keep 14 compressed copies. ¦ c ¦ File contents
+= /srv/myapp/logs/*.log {
+=     daily
+=     rotate 14
+=     compress
+=     missingok
+=     notifempty
+=     copytruncate
+= }
+? Find the last 20 failed SSH login attempts in the auth log.
+
+## cron ¦ Scheduled jobs ¦ crontab(1), crontab(5), systemd.timer(5)
+> cron runs commands on a schedule. Five fields: minute, hour, day of month, month, day of week.
+- crontab -l ¦ List your scheduled jobs. ¦ r
+- crontab -e ¦ Edit your jobs. ¦ c
+- sudo crontab -l -u www-data ¦ List another user's jobs. ¦ r
+- ls /etc/cron.d /etc/cron.daily ¦ System-wide jobs, usually installed by packages. ¦ r
+- 30 2 * * * /usr/local/bin/backup.sh ¦ Every day at 02:30. ¦ i
+- */15 * * * * /srv/app/sync.sh ¦ Every 15 minutes. ¦ i
+- 0 9 * * 1-5 /srv/app/report.sh ¦ 09:00 on weekdays. ¦ i
+- * 10 * * * /srv/app/job.sh ¦ A common mistake: this runs every minute from 10:00 to 10:59, 60 times a day. Use 0 10 * * * to run once at 10:00. ¦ i
+- 0 3 * * * cd /srv/app && ./venv/bin/python job.py >> /var/log/app/job.log 2>&1 ¦ A good pattern: absolute paths, a set working directory, output and errors logged. ¦ i
+- 0 * * * * flock -n /tmp/sync.lock /srv/app/sync.sh ¦ Skip a run if the previous one is still going. ¦ i
+- systemctl list-timers ¦ systemd timers, the modern alternative to cron. ¦ r
+- grep CRON /var/log/syslog | tail ¦ Check that cron actually ran your job. ¦ r
+! cron runs with a minimal environment: a short PATH, no .bashrc, and your home directory as the working directory. Use full paths and redirect output; otherwise cron mails the output to a local mailbox that grows forever. Times are in the server's time zone, often UTC.
+? Schedule a job that appends the date to a file every 5 minutes, confirm it ran twice, then remove it.
+
+## disk ¦ Disks and filesystems ¦ lsblk(8), mount(8), fstab(5)
+> Find out what fills a disk, add storage, and mount it so it survives reboots.
+- df -hT ¦ Usage and filesystem type of every mount. ¦ r
+- df -i ¦ Inode usage. A disk with free space can still be "full" if it runs out of inodes, usually from millions of tiny files. ¦ r
+- sudo du -xh --max-depth=1 / | sort -h ¦ Which top-level directories are biggest. ¦ r
+- sudo ncdu -x / ¦ Browse disk usage interactively (sudo apt install ncdu). ¦ r
+- lsblk -f ¦ Disks, partitions, filesystems and mount points. ¦ r
+= NAME        FSTYPE LABEL           MOUNTPOINT
+= nvme0n1
+= └─nvme0n1p1 ext4   cloudimg-rootfs /
+= nvme1n1
+- sudo blkid ¦ The UUID of each filesystem, used in /etc/fstab. ¦ r
+- findmnt ¦ Mounted filesystems as a tree. ¦ r
+- sudo mkfs.ext4 /dev/nvme1n1 ¦ Create a filesystem. Erases everything on that device. ¦ d
+- sudo mkdir /data && sudo mount /dev/nvme1n1 /data ¦ Mount a disk on a directory. ¦ c
+- UUID=0b5e2f1c-7d8a-4c1e-9f3b-2a6d5e8c1f40  /data  ext4  defaults,nofail  0  2 ¦ An /etc/fstab line that mounts the disk at boot. nofail lets the server boot even if the disk is missing. ¦ i
+- sudo mount -a ¦ Test /etc/fstab without rebooting. Run it after every fstab edit. ¦ c
+- sudo umount /data ¦ Unmount. Fails while a process uses it; find which with sudo lsof +D /data. ¦ c
+! A typo in /etc/fstab can stop a server from booting. Always run sudo mount -a before you reboot.
+? Find the five largest files under /var and explain what each one is.
+
+## swap ¦ Memory and swap ¦ free(1), swapon(8)
+> Swap is disk space used when RAM runs out. A small swap file stops a small server from killing processes under memory pressure.
+- free -h ¦ RAM and swap. "available" is what new programs can really use. ¦ r
+- swapon --show ¦ Active swap areas. ¦ r
+- sudo fallocate -l 2G /swapfile ¦ Create a 2 GB file for swap. ¦ c
+- sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile ¦ Secure it, format it and turn it on. ¦ c
+- echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab ¦ Turn it on at every boot. ¦ c
+- cat /proc/sys/vm/swappiness ¦ How eagerly the kernel swaps, from 0 to 100 (default 60). ¦ r
+- sudo dmesg -T | grep -i "out of memory" ¦ Did the kernel kill processes because memory ran out? ¦ r
+? Add a 1 GB swap file on a test machine and confirm it with swapon --show.
+
+## net ¦ Networking ¦ ip(8), ss(8), dig(1)
+> Check each layer in order: address, route, DNS, port, application.
+- ip -br a ¦ Interfaces and IP addresses, one line each. ¦ r
+= lo     UNKNOWN 127.0.0.1/8 ::1/128
+= ens5   UP      172.31.5.235/20
+- ip r ¦ Routing table. "default via" is the gateway. ¦ r
+- hostname -I ¦ This machine's IP addresses. ¦ r
+- ping -c 4 8.8.8.8 ¦ Is a host reachable? Many cloud hosts block ping, so no reply does not prove it is down. ¦ r
+- sudo ss -tulpn ¦ Listening ports and the program that owns each one. ¦ r
+= Netid State  Local Address:Port  Process
+= tcp   LISTEN 0.0.0.0:22          users:(("sshd",pid=812,fd=3))
+= tcp   LISTEN 127.0.0.1:8000      users:(("gunicorn",pid=1301,fd=5))
+- ss -tn state established ¦ Current TCP connections. ¦ r
+- dig +short example.com ¦ DNS lookup (sudo apt install dnsutils). dig example.com MX shows mail records. ¦ r
+- getent hosts example.com ¦ Resolve a name the way applications do, including /etc/hosts. ¦ r
+- resolvectl status ¦ Which DNS servers this machine uses. ¦ r
+- nc -zv db.internal 5432 ¦ Is a TCP port open on another host? ¦ r
+- tracepath example.com ¦ The path packets take and where they stop. mtr gives a live view. ¦ r
+- cat /etc/hosts ¦ Fixed name overrides, checked before DNS. ¦ r
+! In ss output, 0.0.0.0 means "every network interface": reachable from outside if the firewall allows it. 127.0.0.1 means only this machine can connect.
+? List every listening port on a machine and name the program behind each one.
+
+## ssh ¦ SSH and file transfer ¦ ssh(1), ssh-keygen(1), rsync(1)
+> SSH gives you an encrypted shell on a remote machine. Log in with keys, not passwords.
+- ssh ubuntu@203.0.113.10 ¦ Connect as a user. ¦ r
+- ssh -i ~/.ssh/server.pem ubuntu@203.0.113.10 ¦ Connect with a specific private key, such as a cloud key pair. ¦ r
+- ssh-keygen -t ed25519 -C "alice@laptop" ¦ Create a new key pair (~/.ssh/id_ed25519 and id_ed25519.pub). ¦ c
+- ssh-copy-id alice@server ¦ Install your public key on a server. ¦ c
+- chmod 700 ~/.ssh && chmod 600 ~/.ssh/id_ed25519 ~/.ssh/authorized_keys ¦ SSH refuses keys whose permissions are too open. ¦ c
+- nano ~/.ssh/config ¦ Save connection details, so that ssh web1 is all you type. ¦ c ¦ File contents
+= Host web1
+=     HostName 203.0.113.10
+=     User ubuntu
+=     IdentityFile ~/.ssh/server.pem
+- scp report.csv web1:/tmp/ ¦ Copy a file to the server. Swap the two arguments to download. ¦ c
+- rsync -avz --progress ./site/ web1:/var/www/site/ ¦ Sync a directory; only changed files are sent. ¦ c
+- rsync -avzn --delete ./site/ web1:/var/www/site/ ¦ -n is a dry run: it shows what --delete would remove before you do it for real. ¦ r
+- ssh -L 5433:localhost:5432 web1 ¦ A tunnel: reach the server's database at localhost:5433 on your own machine. ¦ r
+- ssh -v web1 ¦ Verbose output for debugging failed connections. ¦ r
+- ssh-keygen -R 203.0.113.10 ¦ Forget an old host key after a server is rebuilt. ¦ c
+- ssh web1 'df -h /' ¦ Run one command remotely and return. ¦ r
+? Create a key, install it on a test server, add a Host entry, then connect with just ssh and the name.
+
+## firewall ¦ Firewalls ¦ ufw(8), firewall-cmd(1), nft(8)
+> Open only the ports you need. On cloud servers the provider's firewall (for example AWS security groups) sits in front of the Linux firewall, so check both.
+- sudo ufw status verbose ¦ Current rules and default policies (Ubuntu). ¦ r
+- sudo ufw allow OpenSSH ¦ Allow SSH. Do this before turning the firewall on. ¦ c
+- sudo ufw allow 80,443/tcp ¦ Allow web traffic. ¦ c
+- sudo ufw allow from 198.51.100.7 to any port 5432 ¦ Allow one IP address to reach one port. ¦ c
+- sudo ufw enable ¦ Turn the firewall on. ¦ c
+- sudo ufw status numbered ¦ Rules with numbers. ¦ r
+- sudo ufw delete 3 ¦ Delete rule number 3. ¦ c
+- sudo firewall-cmd --list-all ¦ RHEL family: current zone and rules. ¦ r
+- sudo firewall-cmd --permanent --add-service=https && sudo firewall-cmd --reload ¦ RHEL family: allow HTTPS. ¦ c
+- sudo nft list ruleset ¦ The underlying kernel rules (nftables). ¦ r
+! Turning on a firewall without an SSH rule locks you out of a remote server. Add the SSH rule first, and keep your current session open while you test a new login.
+? On a test machine, allow only SSH and HTTP, enable ufw, and confirm with curl from another computer.
+
+## env ¦ Environment and shell configuration ¦ bash(1), environ(7)
+> Environment variables pass settings to programs. Your shell reads startup files such as ~/.bashrc each time it starts.
+- env | sort ¦ Every environment variable. ¦ r
+- echo $PATH ¦ Directories searched for commands, separated by ":". ¦ r
+- export APP_ENV=production ¦ Set a variable for this shell and the programs it starts. ¦ c
+- APP_ENV=test python3 app.py ¦ Set a variable for one command only. ¦ r
+- unset APP_ENV ¦ Remove a variable. ¦ c
+- echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc ¦ Add a directory to PATH permanently. ¦ c
+- source ~/.bashrc ¦ Reload the file in the current shell. ¦ c
+- alias ll='ls -lah' ¦ Create a shortcut. Add it to ~/.bashrc to keep it. ¦ c
+- set -a; source .env; set +a ¦ Load a file of KEY=value lines into the environment. ¦ c
+! Do not paste env output when asking for help. It often contains passwords and tokens.
+? Add an alias and a PATH entry to ~/.bashrc, open a new shell, and confirm both work.
+
+## bash ¦ Bash scripting ¦ bash(1), shellcheck(1)
+> Once you have run the same commands by hand twice, turn them into a script.
+- nano backup.sh ¦ A complete script: strict mode, a required argument, checks, logging and cleanup. ¦ c ¦ File contents
+= #!/usr/bin/env bash
+= set -euo pipefail            # stop on errors, unset variables and failed pipes
+=
+= SRC="${1:?usage: backup.sh SOURCE_DIR}"   # first argument, required
+= DEST="/backups"
+= STAMP="$(date +%F_%H%M)"
+= LOG="/var/log/backup.log"
+=
+= log() { echo "$(date '+%F %T') $*" | tee -a "$LOG"; }
+=
+= if [[ ! -d "$SRC" ]]; then
+=     log "ERROR: $SRC is not a directory"
+=     exit 1
+= fi
+=
+= mkdir -p "$DEST"
+= tar -czf "$DEST/$(basename "$SRC")-$STAMP.tar.gz" "$SRC"
+= log "Backed up $SRC"
+=
+= # keep only the 7 newest archives
+= ls -1t "$DEST"/*.tar.gz | tail -n +8 | xargs -r rm --
+- chmod +x backup.sh && ./backup.sh /srv/app ¦ Make it executable and run it with an argument. ¦ c
+- bash -x backup.sh /srv/app ¦ Print each command as it runs, for debugging. ¦ c
+- for f in *.log; do gzip "$f"; done ¦ Loop over files. ¦ c
+- while read -r user; do id "$user"; done < users.txt ¦ Loop over the lines of a file. ¦ r
+- [[ -f /etc/nginx/nginx.conf ]] && echo "exists" ¦ Tests: -f file, -d directory, -z empty string, -n non-empty string. ¦ r
+- echo $(( 7 * 6 )) ¦ Whole-number arithmetic. ¦ r
+- read -rp "Continue? [y/N] " answer ¦ Ask the user for input. ¦ r
+- case "$1" in start) echo "starting" ;; stop) echo "stopping" ;; *) echo "usage: $0 start|stop" ;; esac ¦ Choose an action by value. ¦ i
+- shellcheck backup.sh ¦ Find bugs in shell scripts (sudo apt install shellcheck). ¦ r
+? Write a script that takes a directory, counts its files, and exits with an error if the directory does not exist. Check it with shellcheck.
+
+## git ¦ Git on servers ¦ git(1)
+> Most deployments pull code from a Git repository. Learn what is deployed before you change anything.
+- git -C /srv/app status ¦ Changed and untracked files. ¦ r
+- git log --oneline -10 ¦ The last 10 commits. ¦ r
+- git log -3 --format='%h %ad %an <%ae> %s' --date=short ¦ Who changed what, and when. ¦ r
+- git rev-parse --short HEAD ¦ The exact commit deployed right now. ¦ r
+- git remote -v ¦ Where the code comes from. ¦ r
+- git branch -vv ¦ Branches and what each one tracks. ¦ r
+- git fetch && git log HEAD..origin/main --oneline ¦ Commits on the remote that are not deployed yet. ¦ r
+- git diff ¦ Uncommitted changes to tracked files. ¦ r
+- git pull --ff-only ¦ Update, refusing to create a surprise merge. ¦ c
+- git stash ¦ Set local changes aside; git stash pop brings them back. ¦ c
+- git checkout a1b2c3d ¦ Switch the working copy to a specific commit, for example to roll back. ¦ c
+- git reset --hard origin/main ¦ Throw away every local change and match the remote exactly. ¦ d
+- git config --list --show-origin ¦ Every setting and the file it comes from. ¦ r
+! Record the output of git rev-parse HEAD before every deploy. That hash is your rollback point.
+? Clone a public repository, check out an older commit, then return to the latest one.
+
+## python ¦ Python apps on Linux ¦ python3(1), pip(1)
+> Give each application its own virtual environment so its packages do not clash with the system's.
+- python3 --version ¦ The installed Python version. ¦ r
+- sudo apt install python3-venv python3-pip ¦ Tools to create virtual environments (Debian/Ubuntu). ¦ c
+- python3 -m venv /srv/app/venv ¦ Create a virtual environment. ¦ c
+- source /srv/app/venv/bin/activate ¦ Activate it: python and pip now point inside it. deactivate leaves. ¦ c
+- pip install -r requirements.txt ¦ Install the app's dependencies. ¦ c
+- pip freeze > requirements.txt ¦ Record the exact installed versions. ¦ c
+- /srv/app/venv/bin/python manage.py migrate ¦ Use the venv without activating it. Best for cron jobs and systemd. ¦ c
+- python3 -m http.server 8080 ¦ Serve the current directory for a quick test. Do not leave it running. ¦ c
+- gunicorn --bind 127.0.0.1:8000 myapp.wsgi:application ¦ Run a Django or Flask app with a production server (uvicorn for FastAPI). ¦ c
+! Never run sudo pip install into the system Python. Newer Ubuntu releases block it, and on older ones it can break system tools.
+? Create a venv, install requests, freeze the requirements, delete the venv and rebuild it from the file.
+
+## webserver ¦ Web servers and reverse proxies ¦ nginx(8), apache2ctl(8)
+> A reverse proxy receives public traffic on ports 80 and 443 and passes it to your app on a local port or socket.
+- sudo nginx -t ¦ Test the Nginx configuration. Always run it before a reload. ¦ r
+- sudo systemctl reload nginx ¦ Apply a valid configuration without downtime. ¦ c
+- ls /etc/nginx/sites-enabled/ ¦ Active sites (Debian/Ubuntu layout; RHEL uses /etc/nginx/conf.d/). ¦ r
+- sudo nano /etc/nginx/sites-available/myapp ¦ A server block that passes requests to a Python app. ¦ c ¦ File contents
+= server {
+=     listen 80;
+=     server_name app.example.com;
+=
+=     location /static/ { alias /srv/myapp/static/; }
+=
+=     location / {
+=         proxy_pass http://127.0.0.1:8000;
+=         proxy_set_header Host $host;
+=         proxy_set_header X-Real-IP $remote_addr;
+=         proxy_set_header X-Forwarded-Proto $scheme;
+=     }
+= }
+- sudo ln -s /etc/nginx/sites-available/myapp /etc/nginx/sites-enabled/ ¦ Enable the site. ¦ c
+- sudo tail -f /var/log/nginx/error.log ¦ The first place to look for 502 and 504 errors. ¦ r
+- sudo apache2ctl configtest ¦ Test the Apache configuration (RHEL: sudo httpd -t). ¦ r
+- sudo a2ensite myapp && sudo systemctl reload apache2 ¦ Enable an Apache site; a2dissite disables one. ¦ c
+- sudo a2enmod proxy proxy_http ssl ¦ Enable Apache modules. ¦ c
+- curl -I http://127.0.0.1 ¦ Test from the server itself, bypassing DNS and outside firewalls. ¦ r
+! 502 Bad Gateway means the proxy could not reach your app: it is stopped, or listening on a different port or socket. 504 Gateway Timeout means the app answered too slowly.
+? Run a Python app on 127.0.0.1:8000 and put Nginx in front of it on port 80.
+
+@level hard ¦ Hard ¦ Production and DevOps ¦ Diagnose performance problems, secure servers, run containers, back up and recover, automate, and change production safely.
+
+## perf ¦ Performance troubleshooting ¦ vmstat(8), iostat(1), lsof(8)
+> Find out which resource is the bottleneck (CPU, memory, disk or network) before you change anything.
+- uptime ¦ Load average over 1, 5 and 15 minutes. Compare it with nproc: a load above the CPU count means work is waiting. ¦ r
+- vmstat 1 5 ¦ One line per second: r is runnable processes, si/so is swapping, wa is time waiting for disk. ¦ r
+= procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+=  r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+=  3  0      0 812344  60212 1490112    0    0     4    22  410  780 35  5 59  1  0
+- iostat -xz 1 ¦ Use and latency per disk (sudo apt install sysstat). %util near 100 means the disk is saturated. ¦ r
+- mpstat -P ALL 1 ¦ Use per CPU core. ¦ r
+- pidstat 1 ¦ CPU use per process over time. ¦ r
+- sudo iotop -o ¦ Which processes are reading or writing the disk. ¦ r
+- sudo lsof -i :8000 ¦ Which process holds a network port. ¦ r
+- sudo lsof +L1 ¦ Deleted files still held open. Their space comes back only when the process restarts. ¦ r
+- sudo lsof -p 1301 | wc -l ¦ How many files a process has open (compare with its limit in ulimit -n). ¦ r
+- sudo strace -f -p 1301 -e trace=network ¦ Watch the system calls of a stuck process. ¦ r
+- sar -u -r 1 3 ¦ CPU and memory samples, and history if sysstat collection is enabled. ¦ r
+- systemd-analyze blame ¦ What slowed down the last boot. ¦ r
+? Run yes > /dev/null to load a CPU, identify it with top, pidstat and uptime, then stop it.
+
+## incident ¦ Troubleshooting workflow ¦ systemctl(1), journalctl(1)
+> Use the same order every time: what changed, what is failing, what the logs say, which resource has run out.
+- systemctl --failed ¦ 1. Has anything failed? ¦ r
+- journalctl -p err -b --no-pager | tail -50 ¦ 2. Recent errors since boot. ¦ r
+- df -h && df -i ¦ 3. Is the disk, or its inodes, full? A full disk breaks logins, databases and logging. ¦ r
+- free -h && sudo dmesg -T | grep -iE "oom|killed process" ¦ 4. Has memory run out? Was anything killed? ¦ r
+- sudo ss -tulpn ¦ 5. Is the service listening where the proxy expects it? ¦ r
+- curl -sv http://127.0.0.1:8000/health ¦ 6. Does the app answer locally? ¦ r
+- last -x | head ¦ 7. Recent reboots and shutdowns. ¦ r
+- ls -lt /etc | head ¦ 8. Recently changed configuration. ¦ r
+- cat /var/run/reboot-required ¦ Does an installed update need a reboot? (No file means no.) ¦ r
+- sudo find / -xdev -type f -size +500M -exec ls -lh {} + 2>/dev/null ¦ Find huge files when a disk is full. ¦ r
+- sudo journalctl --vacuum-size=200M ¦ Shrink the journal to free space. Old logs are deleted. ¦ d
+! Write down every command you run during an incident, with the time. It makes the rollback and the write-up much easier.
+? On a test machine, fill the disk with fallocate -l, watch what breaks, then recover.
+
+## harden ¦ Security hardening ¦ sshd_config(5), fail2ban-client(1)
+> Reduce what an attacker can reach, keep software patched, and make every access traceable.
+- sudo sshd -T | grep -E "passwordauthentication|permitrootlogin" ¦ The SSH settings actually in effect. ¦ r
+- sudo nano /etc/ssh/sshd_config.d/50-hardening.conf ¦ Key-only logins and no direct root login. ¦ c ¦ File contents
+= PasswordAuthentication no
+= PermitRootLogin no
+= KbdInteractiveAuthentication no
+= MaxAuthTries 3
+- sudo sshd -t && sudo systemctl reload ssh ¦ Test the file, then apply it (the service is sshd on RHEL). Keep your current session open until a new login works. ¦ c
+- sudo apt install unattended-upgrades && sudo dpkg-reconfigure unattended-upgrades ¦ Install security updates automatically. ¦ c
+- sudo apt install fail2ban ¦ Ban IP addresses after repeated failed logins. ¦ c
+- sudo fail2ban-client status sshd ¦ Currently banned addresses. ¦ r
+- sudo lastb | head ¦ Failed login attempts. ¦ r
+- sudo ss -tulpn | grep -v 127.0.0 ¦ Services reachable from outside. Each one should have a reason to be there. ¦ r
+- sudo aa-status ¦ AppArmor profiles in force (RHEL uses SELinux: getenforce). ¦ r
+- sudo grep -r "NOPASSWD" /etc/sudoers /etc/sudoers.d/ ¦ Who can use sudo without a password. ¦ r
+- sudo find /home /srv -name ".env" -perm /o+r ¦ Secret files that every user can read. ¦ r
+! Keep secrets out of the code repository, readable only by the app's user (chmod 600). Rotate any secret that was ever committed to Git, even if a later commit removed it.
+? Harden SSH on a test machine. Confirm a key login still works and a password login is refused.
+
+## tls ¦ TLS certificates ¦ openssl(1), certbot(1)
+> HTTPS needs a certificate for your domain name. Let's Encrypt issues free certificates that renew automatically.
+- sudo certbot --nginx -d app.example.com ¦ Get a certificate and configure Nginx (--apache for Apache). DNS must point at the server and port 80 must be open. ¦ c
+- sudo certbot certificates ¦ Your certificates and their expiry dates. ¦ r
+- sudo certbot renew --dry-run ¦ Test automatic renewal. ¦ r
+- echo | openssl s_client -connect example.com:443 -servername example.com 2>/dev/null | openssl x509 -noout -dates -issuer ¦ Expiry dates and issuer of a live site's certificate. ¦ r
+= notBefore=Sep  1 00:00:00 2026 GMT
+= notAfter=Nov 30 23:59:59 2026 GMT
+= issuer=C = US, O = Let's Encrypt, CN = R11
+- openssl x509 -in /etc/ssl/certs/site.crt -noout -subject -dates ¦ Inspect a certificate file. ¦ r
+- openssl req -x509 -newkey rsa:2048 -nodes -days 30 -keyout lab.key -out lab.crt -subj "/CN=lab.local" ¦ A self-signed certificate, for labs only. Browsers will show a warning. ¦ c
+! Never share or paste a .key file. It is the secret half of the certificate.
+? Check the expiry dates of three public websites with openssl.
+
+## docker ¦ Containers with Docker ¦ docker(1), docker-compose(1)
+> A container packages an app with everything it needs. Compose describes several containers in one file.
+- docker ps -a ¦ Every container, running and stopped. ¦ r
+- docker images ¦ Images on this machine. ¦ r
+- docker run -d --name web -p 8080:80 nginx:1.27 ¦ Run a container in the background, mapping host port 8080 to container port 80. ¦ c
+- docker logs -f --tail 100 web ¦ Follow a container's output. ¦ r
+- docker exec -it web sh ¦ Open a shell inside a running container. ¦ c
+- docker stop web && docker rm web ¦ Stop and delete a container. ¦ d
+- docker compose up -d ¦ Start everything in compose.yaml in the background. ¦ c
+- docker compose ps ¦ State of the project's containers. ¦ r
+- docker compose logs -f api ¦ Logs of one service. ¦ r
+- docker compose pull && docker compose up -d ¦ Fetch newer images and recreate the containers that changed. ¦ c
+- docker system df ¦ Space used by images, containers and volumes. ¦ r
+- docker image prune ¦ Delete unused (dangling) images. docker system prune -a --volumes also deletes data volumes. ¦ d
+- docker inspect -f '{{.State.Status}} {{.RestartCount}}' web ¦ One field from a container's details. Full inspect output can include secrets. ¦ r
+- nano compose.yaml ¦ An API with a PostgreSQL database. ¦ c ¦ File contents
+= services:
+=   api:
+=     image: ghcr.io/example/api:1.4.2
+=     env_file: .env
+=     ports: ["127.0.0.1:8000:8000"]
+=     depends_on: [db]
+=     restart: unless-stopped
+=   db:
+=     image: postgres:16
+=     environment:
+=       POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+=     volumes: [dbdata:/var/lib/postgresql/data]
+=     restart: unless-stopped
+= volumes:
+=   dbdata:
+! Ports published by Docker bypass ufw. Bind to 127.0.0.1 unless the port really should be public.
+? Run Nginx in a container, change its port mapping, and read its logs.
+
+## backup ¦ Backups and recovery ¦ rsync(1), pg_dump(1), mysqldump(1)
+> A backup only counts once you have restored from it. Keep at least one copy off the server.
+- sudo tar -czf /backups/etc-$(date +%F).tar.gz /etc ¦ Back up all system configuration. ¦ c
+- rsync -a --delete /srv/app/ /mnt/backup/app/ ¦ Mirror a directory. --delete also removes files from the backup that were removed at the source. ¦ d
+- pg_dump -Fc -h db.internal -U app appdb > appdb-$(date +%F).dump ¦ PostgreSQL backup in compressed custom format. ¦ r
+- pg_restore -d appdb_restore appdb-2026-10-22.dump ¦ Restore into a test database to prove the backup works. ¦ c
+- mysqldump --single-transaction appdb | gzip > appdb-$(date +%F).sql.gz ¦ MySQL or MariaDB backup without locking tables. ¦ r
+- aws s3 cp appdb-2026-10-22.dump s3://my-backups/db/ ¦ Copy a backup off the server. ¦ c
+- sha256sum appdb-2026-10-22.dump ¦ A checksum to verify the copy later. ¦ r
+- aws ec2 create-snapshot --volume-id vol-0abc123 --description "before upgrade" ¦ Snapshot a whole cloud disk before a risky change. ¦ c
+? Back up a small database, drop a table in a copy, and restore it from the dump.
+
+## cloud ¦ Linux on AWS EC2 ¦ aws(1), cloud-init(1)
+> Cloud servers add instance metadata, IAM roles and provider firewalls on top of normal Linux.
+- aws sts get-caller-identity ¦ Which AWS identity the CLI is using right now. ¦ r
+- aws configure list ¦ Where credentials come from: an IAM role, environment variables or a file. ¦ r
+- TOKEN=$(curl -sX PUT http://169.254.169.254/latest/api/token -H "X-aws-ec2-metadata-token-ttl-seconds: 60") ¦ Get an IMDSv2 token for the instance metadata service. ¦ r
+- curl -sH "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id ¦ Read instance metadata (try instance-type or iam/info). ¦ r
+- sudo less /var/log/cloud-init-output.log ¦ What ran at first boot (user data). It may contain secrets. ¦ r
+- snap services amazon-ssm-agent ¦ Is the Session Manager agent running? It also needs an IAM role to work. ¦ r
+- aws ec2 describe-instances --instance-ids i-0abc123 --query "Reservations[].Instances[].State.Name" ¦ An instance's state from the CLI. ¦ r
+- aws ec2 describe-security-groups --group-ids sg-0abc123 ¦ The provider firewall's rules. ¦ r
+- sudo growpart /dev/nvme0n1 1 && sudo resize2fs /dev/nvme0n1p1 ¦ Use new space after enlarging an EBS volume (on XFS: sudo xfs_growfs /). ¦ c
+! Prefer an IAM role attached to the instance over access keys saved in files. Role credentials rotate automatically and cannot be copied off the server and reused forever.
+? On a test instance, attach an IAM role with S3 read access and confirm aws s3 ls works with no keys on disk.
+
+## limits ¦ Signals, priorities and limits ¦ kill(1), nice(1), systemd.resource-control(5)
+> Control how processes stop, how much they get, and how long they may run.
+- kill -l ¦ List signals. Key ones: 1 HUP (often reload), 2 INT (Ctrl+C), 9 KILL (cannot be caught), 15 TERM (polite stop). ¦ r
+- sudo kill -HUP $(pgrep -o nginx) ¦ Many daemons reload their configuration on SIGHUP. ¦ c
+- nice -n 10 tar -czf big.tar.gz /data ¦ Run at a lower CPU priority. ¦ c
+- sudo renice -n 5 -p 1301 ¦ Lower a running process's priority. ¦ c
+- ionice -c3 rsync -a /data /backup ¦ Use the disk only when nothing else needs it. ¦ c
+- timeout 30s ./sync.sh ¦ Stop a command that runs longer than 30 seconds. ¦ c
+- ulimit -a ¦ Per-process limits for this shell, such as open files and processes. ¦ r
+- sudo systemctl set-property myapp.service MemoryMax=512M CPUQuota=50% ¦ Cap a service's memory and CPU. ¦ c
+- systemd-cgtop ¦ Live resource use per service. ¦ r
+? Run a long command under timeout and nice, and watch its priority in the NI column of top.
+
+## kernel ¦ Kernel, /proc and /sys ¦ sysctl(8), proc(5)
+> The kernel exposes its state as files. sysctl reads and tunes its settings.
+- grep "model name" /proc/cpuinfo | head -1 ¦ CPU model. ¦ r
+- head /proc/meminfo ¦ Detailed memory counters. ¦ r
+- cat /proc/loadavg ¦ Load averages and process counts. ¦ r
+- ls /sys/class/net ¦ Network interfaces as the kernel sees them. ¦ r
+- sysctl net.ipv4.ip_forward ¦ Read one kernel setting. ¦ r
+- sudo sysctl -w vm.swappiness=10 ¦ Change a setting until the next reboot. ¦ c
+- echo "vm.swappiness=10" | sudo tee /etc/sysctl.d/99-swappiness.conf && sudo sysctl --system ¦ Make the change permanent. ¦ c
+- lsmod | head ¦ Loaded kernel modules. ¦ r
+- modinfo ext4 ¦ Details of one module. ¦ r
+? Find your kernel version, CPU model and total memory using only files under /proc.
+
+## lvm ¦ LVM and growing storage ¦ lvm(8)
+> LVM pools disks into volume groups so filesystems can grow without repartitioning.
+- sudo pvs && sudo vgs && sudo lvs ¦ Physical volumes, volume groups and logical volumes. ¦ r
+- sudo pvcreate /dev/sdb ¦ Prepare a new disk for LVM. Erases it. ¦ d
+- sudo vgextend vg0 /dev/sdb ¦ Add the disk to a volume group. ¦ c
+- sudo lvextend -r -L +20G /dev/vg0/data ¦ Grow a volume by 20 GB, and its filesystem in the same step (-r). ¦ c
+- sudo lvcreate -L 10G -n logs vg0 ¦ Create a new logical volume. ¦ c
+- sudo lvcreate -s -L 5G -n data-snap /dev/vg0/data ¦ A point-in-time snapshot before a risky change. ¦ c
+? In a virtual machine with a spare disk, build a volume group, create and mount a volume, then grow it.
+
+## tmux ¦ Long sessions with tmux ¦ tmux(1), script(1)
+> tmux keeps your session alive if your connection drops. Use it for upgrades, migrations and long copies.
+- tmux new -s maint ¦ Start a named session. ¦ c
+- Ctrl+B then D ¦ Detach. Everything keeps running. ¦ k
+- tmux ls ¦ List sessions. ¦ r
+- tmux attach -t maint ¦ Reconnect to a session. ¦ r
+- Ctrl+B then % or " ¦ Split the window side by side, or top and bottom. ¦ k
+- script -a ~/maint-$(date +%F).log ¦ Record everything typed and printed in this session to a file. exit stops recording. ¦ c
+? Start a long command in tmux, close your terminal, reconnect and reattach.
+
+## change ¦ Changing production safely ¦ diff(1), systemctl(1)
+> Most outages are caused by changes. A routine you follow every time makes changes uneventful.
+- sudo cp -a /etc/nginx/nginx.conf /etc/nginx/nginx.conf.$(date +%F_%H%M).bak ¦ 1. Back up the file you are about to change, with a timestamp. ¦ c
+- git -C /srv/app rev-parse HEAD > ~/pre-deploy-commit.txt ¦ 2. Record the current version as your rollback point. ¦ c
+- diff -u /etc/nginx/nginx.conf.2026-10-22_0900.bak /etc/nginx/nginx.conf ¦ 3. Review exactly what you changed. ¦ r
+- sudo nginx -t ¦ 4. Validate before applying (also apache2ctl configtest, sshd -t, visudo -c, mount -a). ¦ r
+- sudo systemctl reload nginx ¦ 5. Prefer reload over restart when the service supports it. ¦ c
+- curl -fsS -o /dev/null -w "%{http_code}\n" https://app.example.com/health ¦ 6. Check from outside, the way users see it. ¦ r
+- sudo journalctl -u nginx --since "5 min ago" ¦ 7. Watch the logs for a few minutes. ¦ r
+- sudo cp -a /etc/nginx/nginx.conf.2026-10-22_0900.bak /etc/nginx/nginx.conf && sudo systemctl reload nginx ¦ Rollback: restore the backup and reload. ¦ c
+! On a system you do not own, get approval, agree a maintenance window and tell people before you change anything. Change one thing at a time.
+? Write a one-page runbook for deploying a code update to an app you run, including the rollback steps.
+
+## cicd ¦ CI/CD and infrastructure as code ¦ git(1), ssh(1)
+> Automate a task once you can do it reliably by hand. Pipelines make deploys repeatable; infrastructure as code makes servers rebuildable.
+- nano .github/workflows/deploy.yml ¦ A GitHub Actions workflow that deploys over SSH on every push to main. ¦ c ¦ File contents
+= name: deploy
+= on:
+=   push:
+=     branches: [main]
+= jobs:
+=   deploy:
+=     runs-on: ubuntu-latest
+=     steps:
+=       - uses: appleboy/ssh-action@v1.2.0
+=         with:
+=           host: ${{ secrets.HOST }}
+=           username: deploy
+=           key: ${{ secrets.SSH_KEY }}
+=           script: |
+=             cd /srv/app
+=             git pull --ff-only
+=             ./venv/bin/pip install -r requirements.txt
+=             sudo systemctl restart myapp
+- ansible all -i inventory.ini -m ping ¦ Ansible: check that you can reach every server. ¦ r
+- ansible-playbook -i inventory.ini site.yml --check --diff ¦ Preview what a playbook would change. ¦ r
+- terraform init && terraform plan ¦ Terraform: show what infrastructure would be created or changed. ¦ r
+- terraform apply ¦ Apply the plan after you have reviewed it. ¦ c
+? Automate the deploy of a test app with a GitHub Actions workflow and confirm that a push updates the server.
+</script>
+
+<script>
+(function(){
+  var TAGS = { r:['Read-only','safe'], c:['Changes system','warn'], d:['Destructive','danger'], k:['Key','neutral'], i:['Syntax','neutral'] };
+  var LEVEL_PIPS = { easy:1, medium:2, hard:3 };
+  var STORE = 'linux-field-guide-done';
+
+  function parse(raw){
+    var levels = [], L = null, T = null, R = null;
+    raw.split('\n').forEach(function(line){
+      line = line.replace(/\r$/, '');
+      if (line.indexOf('@level ') === 0){
+        var a = line.slice(7).split(' ¦ ');
+        L = { id:a[0].trim(), name:a[1], sub:a[2], desc:a[3], topics:[] }; levels.push(L); T = null; R = null; return;
+      }
+      if (line.indexOf('## ') === 0){
+        var b = line.slice(3).split(' ¦ ');
+        T = { id:b[0].trim(), title:b[1], man:(b[2]||'').trim(), intro:'', rows:[], notes:[], tasks:[], level:L.id }; L.topics.push(T); R = null; return;
+      }
+      if (!T) return;
+      if (line.indexOf('> ') === 0) T.intro = line.slice(2);
+      else if (line.indexOf('- ') === 0){
+        var p = line.slice(2).split(' ¦ ');
+        R = { cmd:p[0], what:p[1]||'', tag:(p[2]||'r').trim(), label:(p[3]||'').trim(), out:[] }; T.rows.push(R);
+      }
+      else if (line === '=' || line.indexOf('= ') === 0){ if (R) R.out.push(line.slice(2)); }
+      else if (line.indexOf('! ') === 0) T.notes.push(line.slice(2));
+      else if (line.indexOf('? ') === 0) T.tasks.push(line.slice(2));
+    });
+    return levels;
+  }
+
+  function h(tag, cls, text){
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  var done = new Set();
+  try { done = new Set(JSON.parse(localStorage.getItem(STORE) || '[]')); } catch(e){}
+  function save(){ try { localStorage.setItem(STORE, JSON.stringify(Array.from(done))); } catch(e){} }
+
+  var DATA = parse(document.getElementById('guide-data').textContent);
+  var state = { level:'all', q:'', ro:false };
+  var content = document.getElementById('content');
+  var toc = document.getElementById('toc');
+  var jump = document.getElementById('jump');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function copyText(text, btn, selectEl){
+    var show = function(msg){ var old = btn.dataset.label || btn.textContent; btn.dataset.label = old; btn.textContent = msg; setTimeout(function(){ btn.textContent = old; }, 1400); };
+    var fallback = function(){
+      try { var r = document.createRange(); r.selectNodeContents(selectEl); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); show('Selected'); } catch(e){}
+    };
+    try {
+      navigator.clipboard.writeText(text).then(function(){ show('Copied'); }, fallback);
+    } catch(e){ fallback(); }
+  }
+
+  var totalRows = 0, totalTopics = 0;
+
+  DATA.forEach(function(L){
+    var sec = h('section', 'level'); sec.id = 'lvl-' + L.id;
+    var head = h('div', 'level-head');
+    var titleRow = h('div', 'level-title');
+    var pips = h('span', 'pips'); pips.setAttribute('aria-hidden', 'true');
+    for (var i = 1; i <= 3; i++){ var pi = h('i', i <= LEVEL_PIPS[L.id] ? 'on' : ''); pips.appendChild(pi); }
+    titleRow.appendChild(pips);
+    titleRow.appendChild(h('h2', null, L.name));
+    titleRow.appendChild(h('span', 'sub', L.sub));
+    head.appendChild(titleRow);
+    head.appendChild(h('p', 'level-desc', L.desc));
+    L.progEl = h('span', 'level-prog', '');
+    head.appendChild(L.progEl);
+    sec.appendChild(head);
+
+    var tocHead = h('h4'); tocHead.appendChild(h('span', null, L.name + ' · ' + L.sub));
+    L.tocProg = h('span', null, ''); tocHead.appendChild(L.tocProg);
+    var tocList = h('ul');
+    var tocWrap = h('div'); tocWrap.appendChild(tocHead); tocWrap.appendChild(tocList);
+    toc.appendChild(tocWrap); L.tocEl = tocWrap;
+
+    var og = document.createElement('optgroup'); og.label = L.name + ' · ' + L.sub; jump.appendChild(og);
+
+    L.topics.forEach(function(T){
+      totalTopics++;
+      var art = h('article', 'topic'); art.id = 't-' + T.id;
+      var th = h('div', 'topic-head');
+      var tl = h('div');
+      tl.appendChild(h('h3', null, T.title));
+      if (T.man) tl.appendChild(h('p', 'man', T.man));
+      th.appendChild(tl);
+      var lab = h('label', 'done-box');
+      var cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'done-' + T.id; cb.checked = done.has(T.id);
+      cb.addEventListener('change', function(){ if (cb.checked) done.add(T.id); else done.delete(T.id); save(); progress(); });
+      lab.appendChild(cb); lab.appendChild(document.createTextNode('Practiced'));
+      th.appendChild(lab);
+      art.appendChild(th);
+      if (T.intro) art.appendChild(h('p', 'intro', T.intro));
+
+      var ul = h('ul', 'rows');
+      T.rows.forEach(function(R){
+        totalRows++;
+        var li = h('li', 'row');
+        var isKey = R.tag === 'k';
+        var cmd = h('div', 'cmd' + (isKey ? ' key' : ''));
+        if (R.tag !== 'k' && R.tag !== 'i') cmd.appendChild(h('span', 'p', '$'));
+        var code = h('code', null, R.cmd);
+        cmd.appendChild(code);
+        if (!isKey){
+          var btn = h('button', 'copy', 'Copy'); btn.type = 'button';
+          btn.setAttribute('aria-label', 'Copy command: ' + R.cmd);
+          btn.addEventListener('click', function(){ copyText(R.cmd, btn, code); });
+          cmd.appendChild(btn);
+        }
+        li.appendChild(cmd);
+        var meta = h('div', 'meta');
+        meta.appendChild(h('p', null, R.what));
+        var t = TAGS[R.tag] || TAGS.r;
+        meta.appendChild(h('span', 'tag ' + t[1], t[0]));
+        li.appendChild(meta);
+        if (R.out.length){
+          var out = h('div', 'out');
+          var oh = h('div', 'out-head');
+          var label = R.label || 'Sample output';
+          oh.appendChild(h('span', 'out-label', label));
+          var pre = h('pre', null, R.out.join('\n'));
+          if (R.label === 'File contents'){
+            var b2 = h('button', 'copy', 'Copy file'); b2.type = 'button';
+            b2.addEventListener('click', function(){ copyText(R.out.join('\n') + '\n', b2, pre); });
+            oh.appendChild(b2);
+          }
+          out.appendChild(oh); out.appendChild(pre);
+          li.appendChild(out);
+        }
+        R.el = li;
+        R.hay = (R.cmd + ' ' + R.what + ' ' + R.out.join(' ')).toLowerCase();
+        ul.appendChild(li);
+      });
+      art.appendChild(ul);
+
+      T.notes.forEach(function(n){ var p = h('p', 'note'); p.appendChild(h('strong', null, 'Note')); p.appendChild(h('span', null, n)); art.appendChild(p); });
+      T.tasks.forEach(function(n){ var p = h('p', 'task'); p.appendChild(h('strong', null, 'Try it')); p.appendChild(h('span', null, n)); art.appendChild(p); });
+
+      sec.appendChild(art);
+      T.el = art;
+      T.hay = (T.title + ' ' + T.intro + ' ' + T.man).toLowerCase();
+
+      var li2 = h('li'); var a = h('a'); a.href = '#t-' + T.id;
+      a.appendChild(h('span', 'ck')); a.appendChild(h('span', null, T.title));
+      a.addEventListener('click', function(ev){ ev.preventDefault(); goTo(T); });
+      li2.appendChild(a); tocList.appendChild(li2); T.tocEl = li2;
+
+      var opt = document.createElement('option'); opt.value = T.id; opt.textContent = T.title; og.appendChild(opt);
+    });
+
+    content.appendChild(sec);
+    L.el = sec;
+  });
+
+  var empty = h('p', 'empty', 'No commands match. Try a shorter search, or switch off "Read-only commands only".');
+  empty.hidden = true; content.appendChild(empty);
+
+  document.getElementById('stat-topics').textContent = totalTopics;
+  document.getElementById('stat-cmds').textContent = totalRows;
+
+  function findTopic(id){ for (var i = 0; i < DATA.length; i++){ for (var j = 0; j < DATA[i].topics.length; j++){ if (DATA[i].topics[j].id === id) return DATA[i].topics[j]; } } return null; }
+
+  function goTo(T){
+    if (T.el.hidden){ state.level = 'all'; state.q = ''; state.ro = false; document.getElementById('q').value = ''; apply(); }
+    T.el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  }
+
+  function apply(){
+    var q = state.q.trim().toLowerCase(), any = false;
+    DATA.forEach(function(L){
+      var levelOk = state.level === 'all' || state.level === L.id, shown = 0;
+      L.topics.forEach(function(T){
+        var topicHit = q && T.hay.indexOf(q) !== -1, vis = 0;
+        T.rows.forEach(function(R){
+          var ok = (!state.ro || R.tag === 'r') && (!q || topicHit || R.hay.indexOf(q) !== -1);
+          R.el.hidden = !ok; if (ok) vis++;
+        });
+        var show = levelOk && vis > 0;
+        T.el.hidden = !show; T.tocEl.hidden = !show;
+        if (show){ shown++; any = true; }
+      });
+      L.el.hidden = shown === 0; L.tocEl.hidden = shown === 0;
+    });
+    empty.hidden = any;
+    document.querySelectorAll('.seg button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.level === state.level)); });
+    document.getElementById('ro').setAttribute('aria-pressed', String(state.ro));
+  }
+
+  function progress(){
+    var total = 0, got = 0;
+    DATA.forEach(function(L){
+      var n = 0;
+      L.topics.forEach(function(T){ var d = done.has(T.id); if (d) n++; T.tocEl.classList.toggle('done', d); });
+      total += L.topics.length; got += n;
+      L.progEl.textContent = n + ' of ' + L.topics.length + ' topics practiced';
+      L.tocProg.textContent = n + '/' + L.topics.length;
+    });
+    document.getElementById('prog-text').textContent = got + ' / ' + total + ' practiced';
+    document.getElementById('prog-bar').style.width = (total ? (got / total * 100) : 0) + '%';
+  }
+
+  document.querySelectorAll('.seg button').forEach(function(b){
+    b.addEventListener('click', function(){ state.level = b.dataset.level; apply(); window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }); });
+  });
+  document.getElementById('q').addEventListener('input', function(e){ state.q = e.target.value; apply(); });
+  document.getElementById('ro').addEventListener('click', function(){ state.ro = !state.ro; apply(); });
+  jump.addEventListener('change', function(){ var T = findTopic(jump.value); if (T) goTo(T); jump.value = ''; });
+
+  var bar = document.getElementById('bar');
+  function measure(){ document.documentElement.style.setProperty('--barh', bar.offsetHeight + 'px'); }
+  window.addEventListener('resize', measure); measure();
+
+  var hash = location.hash.slice(1);
+  if (LEVEL_PIPS[hash]) state.level = hash;
+  apply(); progress();
+  if (hash.indexOf('t-') === 0){ var T0 = findTopic(hash.slice(2)); if (T0) setTimeout(function(){ goTo(T0); }, 50); }
+})();
+</script>
